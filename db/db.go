@@ -16,7 +16,7 @@ func Init() {
 	databaseCredentials := fmt.Sprintf("%s:%s@%s/%s?charset=utf8&parseTime=True&loc=Local", c.GetString("db.username"), c.GetString("db.password"), c.GetString("db.hostname"), c.GetString("db.database"))
 	dbConnection, err := gorm.Open("mysql", databaseCredentials)
 
-	if err!=nil{
+	if err != nil {
 		log.Println("Faulty connection")
 	}
 

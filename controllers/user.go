@@ -14,7 +14,7 @@ func (u UserController) Retrieve(c *gin.Context) {
 	if c.Param("id") != "" {
 		user, err := userModel.FindUserById(c.Param("id"))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error to retrieve user", "error": err})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error to retrieve user", "error": err.Error()})
 			c.Abort()
 			return
 		}
