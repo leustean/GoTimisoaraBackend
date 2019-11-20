@@ -1,7 +1,6 @@
 package forms
 
-type UserSignup struct {
-	Nickname  string    `json:"nickname"`
-	Email     string    `json:"email"`
-	Password  string    `json:"password"`
+type UserLogin struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }

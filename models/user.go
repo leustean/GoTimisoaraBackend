@@ -16,6 +16,7 @@ type User struct {
 	Username  string    `gorm:"size:255;not null;unique" json:"username"`
 	Email     string    `gorm:"size:100;not null;unique" json:"email"`
 	Password  string    `gorm:"size:100;not null;" json:"password"`
+	FullName  string    `gorm:"size:100; not null" json:"FullName"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -24,7 +25,7 @@ func Hash(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
-func VerifyPassword(hashedPassword, password string) error {
+func (u *User) VerifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
@@ -57,6 +58,10 @@ func (u *User) Validate(action string) error {
 		if u.Email == "" {
 			return errors.New("required Email")
 		}
+		if u.FullName == "" {
+			return errors.New("required Full Name")
+		}
+
 		if err := checkmail.ValidateFormat(u.Email); err != nil {
 			return errors.New("invalid Email")
 		}
@@ -123,6 +128,19 @@ func (u *User) FindUserById(uid string) (*User, error) {
 	database := db.GetDB()
 
 	err = database.Debug().Model(User{}).Where("id = ?", uid).Take(&u).Error
+
+	if err != nil {
+		return &User{}, errors.New("user not found")
+	}
+
+	return u, err
+}
+
+func (u *User) FindUserByUsername(username string) (*User, error) {
+	var err error
+	database := db.GetDB()
+
+	err = database.Debug().Model(User{}).Where("username = ?", username).Take(&u).Error
 
 	if err != nil {
 		return &User{}, errors.New("user not found")
