@@ -14,7 +14,7 @@ type Article struct {
 	Title     string    `gorm:"size:255;not null;unique" json:"title"`
 	Author    User      `json:"author"`
 	AuthorID  uint32    `gorm:"not null" json:"author_id"`
-	Content   string    `gorm:"type:varchar(100); not null;unique" json:"contents"`
+	Content   string    `gorm:"type:longtext; not null;unique" json:"contents"`
 	IsVisible bool      `json:"isVisible,omitempty"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updatedAt,omitempty"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt,omitempty"`
