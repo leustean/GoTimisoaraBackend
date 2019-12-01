@@ -33,31 +33,24 @@ func (u UserController) Retrieve(c *gin.Context) {
 
 func (u UserController) Authentication(c *gin.Context) {
 	var userLoginForm userForms.UserLogin
-	err := c.Bind(userLoginForm)
+	var userData models.User
+
+	err := c.Bind(&userData)
+
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
+		c.Abort()
+		return
+	}
+
+	userLoginForm.Username = userData.Username
+	userLoginForm.Password = userData.Password
 
 	validationResult := userLoginForm.Validate()
 
 	if validationResult != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "bad request"})
-		c.Abort()
-		return
-	}
-
-	var userData models.User
-
-	err = c.Bind(&userData)
-
-	if len(userData.Username) == 0 || len(userData.Password) == 0 {
-		log.Println("invalid request")
-
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request", "error": "Request should contain a username and password fields"})
-		c.Abort()
-		return
-	}
-
-	if err != nil {
-		log.Println(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
 		c.Abort()
 		return
 	}
