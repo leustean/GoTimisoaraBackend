@@ -83,8 +83,21 @@ func (u UserController) Register(c *gin.Context) {
 	var userData models.User
 	var userRegisterForm userForms.UserRegister
 
-	err := c.Bind(&userRegisterForm)
+	err := c.Bind(&userData)
+	userRegisterForm.Username = userData.Username
+	userRegisterForm.Email = userData.Email
+	userRegisterForm.FullName = userData.FullName
+	userRegisterForm.Password = userData.Password
+
 	validationResult := userRegisterForm.Validate()
+
+	if err != nil {
+		log.Println("invalid request: " + err.Error())
+
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
+		c.Abort()
+		return
+	}
 
 	if validationResult != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "bad request"})
@@ -92,12 +105,10 @@ func (u UserController) Register(c *gin.Context) {
 		return
 	}
 
-	err = c.Bind(&userData)
+	_, err = userModel.FindUserByUsername(userData.Username)
 
-	if err != nil {
-		log.Println("invalid request: " + err.Error())
-
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
+	if err == nil {
+		c.JSON(http.StatusOK, gin.H{"message": "User already exists"})
 		c.Abort()
 		return
 	}
@@ -121,7 +132,7 @@ func (u UserController) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusBadRequest, gin.H{"message": "bad request"})
+	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 	c.Abort()
 	return
 }
