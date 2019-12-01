@@ -121,7 +121,7 @@ func (u UserController) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "OK"})
+	c.JSON(http.StatusOK, gin.H{"user": userData})
 	c.Abort()
 	return
 }
