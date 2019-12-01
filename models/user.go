@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"github.com/badoux/checkmail"
 	"goTimisoaraBackend/db"
 	"golang.org/x/crypto/bcrypt"
 	"html"
@@ -46,59 +45,7 @@ func (u *User) Prepare() {
 	u.UpdatedAt = time.Now()
 }
 
-func (u *User) Validate(action string) error {
-	switch strings.ToLower(action) {
-	case "update":
-		if u.Username == "" {
-			return errors.New("required Username")
-		}
-		if u.Password == "" {
-			return errors.New("required Password")
-		}
-		if u.Email == "" {
-			return errors.New("required Email")
-		}
-		if u.FullName == "" {
-			return errors.New("required Full Name")
-		}
-
-		if err := checkmail.ValidateFormat(u.Email); err != nil {
-			return errors.New("invalid Email")
-		}
-
-		return nil
-	case "login":
-		if u.Password == "" {
-			return errors.New("required Password")
-		}
-		if u.Email == "" {
-			return errors.New("required Email")
-		}
-		if err := checkmail.ValidateFormat(u.Email); err != nil {
-			return errors.New("invalid Email")
-		}
-		return nil
-
-	default:
-		if u.Username == "" {
-			return errors.New("required Username")
-		}
-		if u.Password == "" {
-			return errors.New("required Password")
-		}
-		if u.Email == "" {
-			return errors.New("required Email")
-		}
-		if err := checkmail.ValidateFormat(u.Email); err != nil {
-			return errors.New("invalid Email")
-		}
-
-		return nil
-	}
-}
-
 func (u *User) SaveUser() (*User, error) {
-
 	var err error
 	database := db.GetDB()
 	err = database.Debug().Create(&u).Error
@@ -170,7 +117,7 @@ func (u *User) UpdateAUser(uid uint32) (*User, error) {
 	if databaseResult.Error != nil {
 		return &User{}, databaseResult.Error
 	}
-	// This is the display the updated user
+
 	err = databaseResult.Debug().Model(&User{}).Where("id = ?", uid).Take(&u).Error
 
 	if err != nil {

@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"goTimisoaraBackend/forms"
+	"goTimisoaraBackend/forms/user"
 	"goTimisoaraBackend/models"
 	"log"
 	"net/http"
@@ -16,7 +16,8 @@ func (u UserController) Retrieve(c *gin.Context) {
 	if c.Param("id") != "" {
 		user, err := userModel.FindUserById(c.Param("id"))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error to retrieve user", "error": err.Error()})
+			log.Println(err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error to retrieve user"})
 			c.Abort()
 			return
 		}
@@ -31,9 +32,20 @@ func (u UserController) Retrieve(c *gin.Context) {
 }
 
 func (u UserController) Authentication(c *gin.Context) {
-	var userData forms.UserLogin
+	var userLoginForm userForms.UserLogin
+	err := c.Bind(userLoginForm)
 
-	err := c.Bind(&userData)
+	validationResult := userLoginForm.Validate()
+
+	if validationResult != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad request"})
+		c.Abort()
+		return
+	}
+
+	var userData models.User
+
+	err = c.Bind(&userData)
 
 	if len(userData.Username) == 0 || len(userData.Password) == 0 {
 		log.Println("invalid request")
@@ -44,7 +56,8 @@ func (u UserController) Authentication(c *gin.Context) {
 	}
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request", "error": err.Error()})
+		log.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
 		c.Abort()
 		return
 	}
@@ -52,7 +65,8 @@ func (u UserController) Authentication(c *gin.Context) {
 	user, err := userModel.FindUserByUsername(userData.Username)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error to retrieve user", "error": err.Error()})
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error to retrieve user"})
 		c.Abort()
 		return
 	}
@@ -67,34 +81,43 @@ func (u UserController) Authentication(c *gin.Context) {
 
 func (u UserController) Register(c *gin.Context) {
 	var userData models.User
-	err := c.Bind(&userData)
-	userDataValidate := userData.Validate("update")
+	var userRegisterForm userForms.UserRegister
 
-	if userDataValidate != nil {
-		log.Println("invalid request")
+	err := c.Bind(&userRegisterForm)
+	validationResult := userRegisterForm.Validate()
 
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Invalid request", "error": userDataValidate.Error()})
+	if validationResult != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad request"})
 		c.Abort()
 		return
 	}
+
+	err = c.Bind(&userData)
 
 	if err != nil {
 		log.Println("invalid request: " + err.Error())
 
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Invalid request", "error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
 		c.Abort()
 		return
 	}
 
-	if c.Param("id") != "" {
-		user, err := userModel.FindUserById(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error to retrieve user", "error": err.Error()})
-			c.Abort()
-			return
-		}
+	userData.Prepare()
+	err = userData.BeforeSave()
 
-		c.JSON(http.StatusOK, gin.H{"message": "User found!", "user": user})
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Something wrong happened"})
+		c.Abort()
+		return
+	}
+
+	_, err = userData.SaveUser()
+
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Something wrong happened"})
+		c.Abort()
 		return
 	}
 
