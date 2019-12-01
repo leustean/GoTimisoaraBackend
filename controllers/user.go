@@ -111,14 +111,6 @@ func (u UserController) Register(c *gin.Context) {
 	}
 
 	userData.Prepare()
-	//err = userData.BeforeSave()
-	//
-	//if err != nil {
-	//	log.Println(err.Error())
-	//	c.JSON(http.StatusInternalServerError, gin.H{"message": "Something wrong happened"})
-	//	c.Abort()
-	//	return
-	//}
 
 	_, err = userData.SaveUser()
 
