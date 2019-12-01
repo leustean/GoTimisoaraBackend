@@ -29,6 +29,7 @@ func (u *User) VerifyPassword(hashedPassword, password string) error {
 }
 
 func (u *User) BeforeSave() error {
+	log.Println(u.Password)
 	hashedPassword, err := Hash(u.Password)
 	if err != nil {
 		return err
@@ -47,6 +48,7 @@ func (u *User) Prepare() {
 
 func (u *User) SaveUser() (*User, error) {
 	var err error
+
 	database := db.GetDB()
 	err = database.Debug().Create(&u).Error
 
@@ -70,33 +72,36 @@ func (u *User) FindAllUsers() (*[]User, error) {
 	return &users, err
 }
 
-func (u *User) FindUserById(uid string) (*User, error) {
+func (u *User) FindUserById(uid string) (User, error) {
 	var err error
 	database := db.GetDB()
 
-	err = database.Debug().Model(User{}).Where("id = ?", uid).Take(&u).Error
+	var result User
+	err = database.Debug().Model(User{}).Where("id = ?", uid).Take(&result).Error
 
 	if err != nil {
-		return &User{}, errors.New("user not found")
+		return User{}, errors.New("user not found")
 	}
 
-	return u, err
+	return result, err
 }
 
-func (u *User) FindUserByUsername(username string) (*User, error) {
+func (u *User) FindUserByUsername(username string) (User, error) {
 	var err error
+	var result User
+
 	database := db.GetDB()
 
-	err = database.Debug().Model(User{}).Where("username = ?", username).Take(&u).Error
+	err = database.Debug().Where("username = ?", username).First(&result).Error
 
 	if err != nil {
-		return &User{}, errors.New("user not found")
+		return User{}, errors.New("user not found")
 	}
 
-	return u, err
+	return result, err
 }
 
-func (u *User) UpdateAUser(uid uint32) (*User, error) {
+func (u *User) UpdateAUser(uid uint32) (User, error) {
 	database := db.GetDB()
 
 	// To hash the password
@@ -115,15 +120,16 @@ func (u *User) UpdateAUser(uid uint32) (*User, error) {
 	)
 
 	if databaseResult.Error != nil {
-		return &User{}, databaseResult.Error
+		return User{}, databaseResult.Error
 	}
 
-	err = databaseResult.Debug().Model(&User{}).Where("id = ?", uid).Take(&u).Error
+	var result User
+	err = databaseResult.Debug().Model(&User{}).Where("id = ?", uid).Take(&result).Error
 
 	if err != nil {
-		return &User{}, err
+		return User{}, err
 	}
-	return u, nil
+	return result, nil
 }
 
 func (u *User) DeleteAUser(uid uint32) (int64, error) {

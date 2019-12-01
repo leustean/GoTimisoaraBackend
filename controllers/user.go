@@ -64,7 +64,10 @@ func (u UserController) Authentication(c *gin.Context) {
 		return
 	}
 
-	if userModel.VerifyPassword(user.Password, userData.Password) != nil {
+	passwordVerify := userModel.VerifyPassword(user.Password, userData.Password)
+
+	if passwordVerify != nil {
+		log.Println(passwordVerify.Error())
 		c.JSON(http.StatusOK, gin.H{"user": user})
 	}
 
