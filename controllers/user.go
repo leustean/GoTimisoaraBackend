@@ -71,7 +71,7 @@ func (u UserController) Authentication(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Invalid request", "error": "Invalid credentials"})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": user})
+	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 	return
 }
 
