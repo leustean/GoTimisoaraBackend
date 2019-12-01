@@ -68,10 +68,10 @@ func (u UserController) Authentication(c *gin.Context) {
 
 	if passwordVerify != nil {
 		log.Println(passwordVerify.Error())
-		c.JSON(http.StatusOK, gin.H{"user": user})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Invalid request", "error": "Invalid credentials"})
 	}
 
-	c.JSON(http.StatusInternalServerError, gin.H{"message": "Invalid request", "error": "Invalid credentials"})
+	c.JSON(http.StatusOK, gin.H{"user": user})
 	return
 }
 
@@ -110,14 +110,6 @@ func (u UserController) Register(c *gin.Context) {
 	}
 
 	userData.Prepare()
-	err = userData.BeforeSave()
-
-	if err != nil {
-		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Something wrong happened"})
-		c.Abort()
-		return
-	}
 
 	_, err = userData.SaveUser()
 
