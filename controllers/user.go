@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+	"goTimisoaraBackend/auth"
 	"goTimisoaraBackend/forms/user"
 	"goTimisoaraBackend/models"
 	"log"
@@ -55,6 +56,7 @@ func (u UserController) Authentication(c *gin.Context) {
 		return
 	}
 
+	userData.Prepare()
 	user, err := userModel.FindUserByUsername(userData.Username)
 
 	if err != nil {
@@ -72,7 +74,7 @@ func (u UserController) Authentication(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": user})
+	c.JSON(http.StatusOK, gin.H{"user": user, "token": auth.CreateToken(user.ID)})
 	return
 }
 

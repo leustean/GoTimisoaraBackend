@@ -1,30 +1,24 @@
 package middlewares
 
 import (
-	"goTimisoaraBackend/config"
-	"strings"
-
 	"github.com/gin-gonic/gin"
+	"goTimisoaraBackend/auth"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		configData := config.GetConfig()
-		reqKey := c.Request.Header.Get("X-Auth-Key")
-		reqSecret := c.Request.Header.Get("X-Auth-Secret")
+import (
+	"net/http"
+)
 
-		var key string
-		var secret string
-		if key = configData.GetString("http.auth.key"); len(strings.TrimSpace(key)) == 0 {
-			c.AbortWithStatus(500)
-		}
-		if secret = configData.GetString("http.auth.secret"); len(strings.TrimSpace(secret)) == 0 {
-			c.AbortWithStatus(401)
-		}
-		if key != reqKey || secret != reqSecret {
-			c.AbortWithStatus(401)
+func AuthMiddleware(next http.HandlerFunc) func(c *gin.Context, w http.ResponseWriter, r *http.Request) {
+	return func(c *gin.Context, w http.ResponseWriter, r *http.Request) {
+		err := auth.TokenValid(r)
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+			c.Abort()
 			return
 		}
-		c.Next()
+
+		next(w, r)
 	}
 }
