@@ -32,6 +32,7 @@ func NewRouter() *gin.Engine {
 			tagGroup.POST("/", tag.Post)
 			tagGroup.DELETE("/:id", tag.Delete)
 			tagGroup.GET("/", tag.GetAll)
+			tagGroup.GET("/:id", tag.GetTagById)
 		}
 
 		authorGroup := v1.Group("author")

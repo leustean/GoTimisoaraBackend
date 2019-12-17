@@ -107,3 +107,21 @@ func (tag TagController) GetAll(c *gin.Context) {
 
 	return
 }
+
+func (tag TagController) GetTagById(c *gin.Context) {
+	var tagModel models.Tag
+
+	tagId, err := strconv.Atoi(c.Param("id"))
+	tagsData, err := tagModel.FindTagById(uint32(tagId))
+
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "An error occurred"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, tagsData)
+
+	return
+}
