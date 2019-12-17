@@ -20,6 +20,6 @@ func main() {
 	flag.Parse()
 	config.Init(*environment)
 	db.Init()
-	db.GetDB().AutoMigrate(&models.User{}, &models.Article{}, &models.Tag{})
+	db.GetDB().AutoMigrate(&models.User{}, &models.Article{}, &models.Tag{}, &models.Author{})
 	server.Init()
 }
