@@ -58,9 +58,9 @@ func (tag *Tag) UpdateTag() (*Tag, error) {
 	return tag, nil
 }
 
-func (tag *Tag) DeleteTag() error {
+func (tag *Tag) DeleteTagById(id uint32) error {
 	database := db.GetDB()
-	databaseResult := database.Debug().Model(&Tag{}).Where("tag_id = ?", tag.TagId).Take(&Tag{}).Delete(&Tag{})
+	databaseResult := database.Debug().Model(&Tag{}).Where("tag_id = ?", id).Take(&Tag{}).Delete(&Tag{})
 
 	if databaseResult.Error != nil {
 		return databaseResult.Error

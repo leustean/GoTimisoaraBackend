@@ -5,6 +5,7 @@ import (
 	"goTimisoaraBackend/models"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type TagController struct{}
@@ -68,16 +69,15 @@ func (tag TagController) Post(c *gin.Context) {
 func (tag TagController) Delete(c *gin.Context) {
 	var tagsData models.Tag
 
-	err := c.Bind(&tagsData)
-
-	if err != nil {
-		log.Println(err.Error())
+	if c.Param("id") == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
 		c.Abort()
 		return
 	}
 
-	err = tagsData.DeleteTag()
+	tagId, err := strconv.Atoi(c.Param("id"))
+
+	err = tagsData.DeleteTagById(uint32(tagId))
 
 	if err != nil {
 		log.Println(err.Error())

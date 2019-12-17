@@ -30,7 +30,7 @@ func NewRouter() *gin.Engine {
 			tag := new(controllers.TagController)
 			tagGroup.PUT("/", tag.Put)
 			tagGroup.POST("/", tag.Post)
-			tagGroup.DELETE("/", tag.Delete)
+			tagGroup.DELETE("/:id", tag.Delete)
 			tagGroup.GET("/", tag.GetAll)
 		}
 	}
