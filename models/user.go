@@ -11,11 +11,11 @@ import (
 )
 
 type User struct {
-	UserId    uint32    `gorm:"primary_key;auto_increment" json:"id"`
+	UserId    uint32    `gorm:"primary_key;auto_increment" json:"userId"`
 	Username  string    `gorm:"size:255;not null;unique" json:"username"`
 	Email     string    `gorm:"size:100;not null;unique" json:"email"`
 	Password  string    `gorm:"size:100;not null;" json:"password"`
-	FullName  string    `gorm:"size:100; not null" json:"FullName"`
+	FullName  string    `gorm:"size:100; not null" json:"fullName"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -39,7 +39,6 @@ func (user *User) BeforeSave() error {
 }
 
 func (user *User) Prepare() {
-	user.UserId = 0
 	user.Username = html.EscapeString(strings.TrimSpace(user.Username))
 	user.FullName = html.EscapeString(strings.TrimSpace(user.FullName))
 	user.Email = html.EscapeString(strings.TrimSpace(user.Email))

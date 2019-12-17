@@ -7,7 +7,7 @@ import (
 )
 
 type Tag struct {
-	TagId   uint32 `binding:"required" gorm:"primary_key;auto_increment" json:"tagId"`
+	TagId   uint32 `gorm:"primary_key;auto_increment" json:"tagId"`
 	TagName string `gorm:"size:100;not null" json:"tagName"`
 }
 
