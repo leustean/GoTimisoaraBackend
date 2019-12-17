@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"goTimisoaraBackend/controllers"
 )
@@ -13,7 +14,7 @@ func NewRouter() *gin.Engine {
 	health := new(controllers.HealthController)
 
 	router.GET("/health", health.Status)
-	//router.Use(middlewares.AuthMiddleware())
+	router.Use(cors.Default())
 
 	v1 := router.Group("v1")
 	{
