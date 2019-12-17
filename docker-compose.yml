@@ -9,9 +9,9 @@ services:
     environment:
       TZ: "Europe/Bucharest"
       MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
-      MYSQL_ROOT_PASSWORD: 'go_root'
-      MYSQL_USER: 'go_user'
-      MYSQL_PASSWORD: 'go_password'
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
       MYSQL_DATABASE: 'go'
     ports:
       - 3306:3306
