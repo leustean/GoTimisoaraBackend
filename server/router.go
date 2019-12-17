@@ -24,6 +24,15 @@ func NewRouter() *gin.Engine {
 			userGroup.POST("/auth", user.Authentication)
 			userGroup.POST("/register", user.Register)
 		}
+
+		tagGroup := v1.Group("tag")
+		{
+			tag := new(controllers.TagController)
+			tagGroup.PUT("/", tag.Put)
+			tagGroup.POST("/", tag.Post)
+			tagGroup.DELETE("/", tag.Delete)
+			tagGroup.GET("/", tag.GetAll)
+		}
 	}
 	return router
 
