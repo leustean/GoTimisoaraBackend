@@ -10,14 +10,17 @@ import (
 )
 
 type Article struct {
-	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	Title     string    `gorm:"size:255;not null;unique" json:"title"`
-	Author    User      `json:"author"`
-	AuthorID  uint32    `gorm:"not null" json:"author_id"`
-	Content   string    `gorm:"type:longtext; not null" json:"contents"`
-	IsVisible bool      `json:"isVisible,omitempty"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updatedAt,omitempty"`
-	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt,omitempty"`
+	ID            uint32    `gorm:"primary_key;auto_increment" json:"articleId"`
+	Title         string    `gorm:"size:255;not null;unique" json:"title"`
+	Author        User      `json:"author"`
+	AuthorID      uint32    `gorm:"not null" json:"authorId"`
+	Content       string    `gorm:"type:longtext; not null" json:"contents"`
+	IsVisible     uint      `json:"isVisible,omitempty"`
+	Tag           Tag       `json:"tag"`
+	TagId         uint32    `json:"tagId"`
+	EditorsChoice bool      `json:"editorsChoice"`
+	UpdatedAt     time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updatedAt,omitempty"`
+	CreatedAt     time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt,omitempty"`
 }
 
 func (p *Article) Prepare() {
@@ -30,7 +33,6 @@ func (p *Article) Prepare() {
 }
 
 func (p *Article) Validate() error {
-
 	if p.Title == "" {
 		return errors.New("required Title")
 	}
