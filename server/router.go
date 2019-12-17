@@ -33,7 +33,16 @@ func NewRouter() *gin.Engine {
 			tagGroup.DELETE("/:id", tag.Delete)
 			tagGroup.GET("/", tag.GetAll)
 		}
-	}
-	return router
 
+		authorGroup := v1.Group("author")
+		{
+			author := new(controllers.AuthorController)
+			authorGroup.PUT("/", author.Put)
+			authorGroup.POST("/", author.Post)
+			authorGroup.DELETE("/:id", author.Delete)
+			authorGroup.GET("/", author.GetAll)
+		}
+	}
+
+	return router
 }
