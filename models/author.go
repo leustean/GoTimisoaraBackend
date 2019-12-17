@@ -46,6 +46,20 @@ func (author *Author) FindAllAuthors() (*[]Author, error) {
 	return &authors, err
 }
 
+func (author *Author) FindAuthorById(userId uint32) (Author, error) {
+	var err error
+	var authorResult Author
+	database := db.GetDB()
+
+	err = database.Debug().Model(&Author{}).Where("user_id = ?", userId).Limit(1).Find(&authorResult).Error
+
+	if err != nil {
+		return Author{}, err
+	}
+
+	return authorResult, err
+}
+
 func (author *Author) UpdateAuthor() (*Author, error) {
 	database := db.GetDB()
 

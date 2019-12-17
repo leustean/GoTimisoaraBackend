@@ -42,6 +42,20 @@ func (tag *Tag) FindAllTags() (*[]Tag, error) {
 	return &tags, err
 }
 
+func (tag *Tag) FindTagById(tagId uint32) (Tag, error) {
+	var err error
+	var tagResult Tag
+	database := db.GetDB()
+
+	err = database.Debug().Model(&Tag{}).Where("tag_id = ?", tagId).Limit(1).Find(&tagResult).Error
+
+	if err != nil {
+		return Tag{}, err
+	}
+
+	return tagResult, err
+}
+
 func (tag *Tag) UpdateTag() (*Tag, error) {
 	database := db.GetDB()
 
