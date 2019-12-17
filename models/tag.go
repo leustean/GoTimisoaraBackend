@@ -7,12 +7,11 @@ import (
 )
 
 type Tag struct {
-	TagId   uint32 `gorm:"primary_key;auto_increment" json:"tagId"`
+	TagId   uint32 `binding:"required" gorm:"primary_key;auto_increment" json:"tagId"`
 	TagName string `gorm:"size:100;not null" json:"tagName"`
 }
 
 func (tag *Tag) Prepare() {
-	tag.TagId = 0
 	tag.TagName = html.EscapeString(strings.TrimSpace(tag.TagName))
 }
 
@@ -46,9 +45,9 @@ func (tag *Tag) FindAllTags() (*[]Tag, error) {
 func (tag *Tag) UpdateTag() (*Tag, error) {
 	database := db.GetDB()
 
-	databaseResult := database.Debug().Model(&Tag{}).Where("tagId = ?", tag.TagId).Take(&Tag{}).UpdateColumns(
+	databaseResult := database.Debug().Model(&Tag{}).Where("tag_id = ?", tag.TagId).Take(&Tag{}).UpdateColumns(
 		map[string]interface{}{
-			"tagName": tag.TagName,
+			"tag_name": tag.TagName,
 		},
 	)
 
@@ -61,7 +60,7 @@ func (tag *Tag) UpdateTag() (*Tag, error) {
 
 func (tag *Tag) DeleteTag() error {
 	database := db.GetDB()
-	databaseResult := database.Debug().Model(&Tag{}).Where("tagId = ?", tag.TagId).Take(&Tag{}).Delete(&Tag{})
+	databaseResult := database.Debug().Model(&Tag{}).Where("tag_id = ?", tag.TagId).Take(&Tag{}).Delete(&Tag{})
 
 	if databaseResult.Error != nil {
 		return databaseResult.Error
