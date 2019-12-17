@@ -92,8 +92,39 @@ func (article ArticleController) Delete(c *gin.Context) {
 
 func (article ArticleController) GetAll(c *gin.Context) {
 	var articleModel models.Article
+	var articleData *[]models.Article
 
-	articleData, err := articleModel.FindAllArticles()
+	var pageNumber int
+	var tagId int
+	var sortType int
+	var err error
+
+	if c.Param("pageNumber") == "" {
+		pageNumber = 1
+	} else {
+		pageNumber, err = strconv.Atoi(c.Param("pageNumber"))
+	}
+
+	if c.Param("tagId") == "" {
+		tagId = 0
+	} else {
+		tagId, err = strconv.Atoi(c.Param("tagId"))
+	}
+
+	if c.Param("sortType") == "" {
+		sortType = 0
+	} else {
+		sortType, err = strconv.Atoi(c.Param("sortType"))
+	}
+
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "An error occurred"})
+		c.Abort()
+		return
+	}
+
+	articleData, err = articleModel.FindArticlesByPageNumber(uint32(pageNumber), uint32(tagId), uint8(sortType))
 
 	if err != nil {
 		log.Println(err.Error())

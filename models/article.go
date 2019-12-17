@@ -123,6 +123,47 @@ func (article *Article) FindAllArticles() (*[]Article, error) {
 	return &articles, err
 }
 
+func (article *Article) FindArticlesByPageNumber(pageNumber uint32, tagId uint32, sortType uint8) (*[]Article, error) {
+	var err error
+	var articles []Article
+	var numberOfResultsOnPage uint32 = 10
+	var computedPage uint32 = 1
+
+	if pageNumber > 1 {
+		computedPage = (pageNumber - 1) * numberOfResultsOnPage
+	}
+
+	database := db.GetDB()
+
+	if tagId != 0 && sortType == 0 {
+		err = database.Debug().Model(&Article{}).Offset(computedPage).Limit(numberOfResultsOnPage).Where("tag_id = ?", tagId).Find(&articles).Error
+	} else if tagId != 0 && sortType != 0 {
+		if sortType == 1 {
+			err = database.Debug().Model(&Article{}).Where("tag_id = ?", tagId).Order("view_count desc").Order("updated_at desc").Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+		} else if sortType == 2 {
+			err = database.Debug().Model(&Article{}).Where("editors_choice = 1 AND tag_id = ?", tagId).Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+		} else {
+			err = database.Debug().Model(&Article{}).Where("tag_id = ?", tagId).Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+		}
+	} else if tagId == 0 && sortType != 0 {
+		if sortType == 1 {
+			err = database.Debug().Model(&Article{}).Order("view_count desc").Order("updated_at desc").Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+		} else if sortType == 2 {
+			err = database.Debug().Model(&Article{}).Where("editors_choice = 1").Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+		} else {
+			err = database.Debug().Model(&Article{}).Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+		}
+	} else {
+		err = database.Debug().Model(&Article{}).Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+	}
+
+	if err != nil {
+		return &[]Article{}, err
+	}
+
+	return &articles, err
+}
+
 func (article *Article) FindArticleById(articleId uint32) (Article, error) {
 	var err error
 	var articleResult Article
