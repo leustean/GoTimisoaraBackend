@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/jinzhu/gorm"
 	"goTimisoaraBackend/db"
@@ -10,23 +11,22 @@ import (
 )
 
 type Article struct {
-	ArticleID     uint32    `gorm:"primary_key;auto_increment" json:"articleId"`
-	Title         string    `gorm:"size:255;not null;unique" json:"title"`
-	Author        User      `json:"author"`
-	AuthorID      uint32    `gorm:"not null" json:"authorId"`
-	Content       string    `gorm:"type:longtext; not null" json:"contents"`
-	IsVisible     uint      `json:"isVisible,omitempty"`
-	Tag           Tag       `json:"tag"`
-	TagId         uint32    `json:"tagId"`
-	EditorsChoice bool      `json:"editorsChoice"`
-	ViewCount     uint32    `json:"viewCount"`
-	UpdatedAt     time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updatedAt,omitempty"`
-	CreatedAt     time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt,omitempty"`
+	ArticleID     uint32          `gorm:"primary_key;auto_increment" json:"articleId"`
+	Title         string          `gorm:"size:255;not null;unique" json:"title"`
+	Author        User            `json:"author"`
+	AuthorID      uint32          `gorm:"not null" json:"authorId"`
+	Content       json.RawMessage `gorm:"type:JSON; not null" json:"contents"`
+	IsVisible     uint            `json:"isVisible,omitempty"`
+	Tag           Tag             `json:"tag"`
+	TagId         uint32          `json:"tagId"`
+	EditorsChoice bool            `json:"editorsChoice"`
+	ViewCount     uint32          `json:"viewCount"`
+	UpdatedAt     time.Time       `gorm:"default:CURRENT_TIMESTAMP" json:"updatedAt,omitempty"`
+	CreatedAt     time.Time       `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt,omitempty"`
 }
 
 func (article *Article) Prepare() {
 	article.Title = html.EscapeString(strings.TrimSpace(article.Title))
-	article.Content = html.EscapeString(strings.TrimSpace(article.Content))
 	article.Author = User{}
 	article.Tag = Tag{}
 
@@ -51,9 +51,6 @@ func (article *Article) Prepare() {
 func (article *Article) Validate() error {
 	if article.Title == "" {
 		return errors.New("required Title")
-	}
-	if article.Content == "" {
-		return errors.New("required Content")
 	}
 	if article.AuthorID < 1 {
 		return errors.New("required Author")
@@ -97,7 +94,7 @@ func (article *Article) UpdateArticle() (*Article, error) {
 	return article, nil
 }
 
-func (article *Article) DeleteArticleById(articleId uint64) (int64, error) {
+func (article *Article) DeleteArticleById(articleId uint32) (int64, error) {
 	database := db.GetDB()
 	databaseResult := database.Debug().Model(&Article{}).Where("id = ?", articleId).Take(&Article{}).Delete(&Article{})
 

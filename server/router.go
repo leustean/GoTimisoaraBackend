@@ -42,6 +42,15 @@ func NewRouter() *gin.Engine {
 			authorGroup.DELETE("/:id", author.Delete)
 			authorGroup.GET("/", author.GetAll)
 		}
+
+		articleGroup := v1.Group("article")
+		{
+			article := new(controllers.ArticleController)
+			articleGroup.PUT("/", article.Put)
+			articleGroup.POST("/", article.Post)
+			articleGroup.DELETE("/:id", article.Delete)
+			articleGroup.GET("/", article.GetAll)
+		}
 	}
 
 	return router
