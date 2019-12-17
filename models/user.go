@@ -11,7 +11,7 @@ import (
 )
 
 type User struct {
-	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
+	UserId    uint32    `gorm:"primary_key;auto_increment" json:"id"`
 	Username  string    `gorm:"size:255;not null;unique" json:"username"`
 	Email     string    `gorm:"size:100;not null;unique" json:"email"`
 	Password  string    `gorm:"size:100;not null;" json:"password"`
@@ -24,42 +24,43 @@ func Hash(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
-func (u *User) VerifyPassword(hashedPassword, password string) error {
+func (user *User) VerifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-func (u *User) BeforeSave() error {
-	log.Println(u.Password)
-	hashedPassword, err := Hash(u.Password)
+func (user *User) BeforeSave() error {
+	log.Println(user.Password)
+	hashedPassword, err := Hash(user.Password)
 	if err != nil {
 		return err
 	}
-	u.Password = string(hashedPassword)
+	user.Password = string(hashedPassword)
 	return nil
 }
 
-func (u *User) Prepare() {
-	u.ID = 0
-	u.Username = html.EscapeString(strings.TrimSpace(u.Username))
-	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
-	u.CreatedAt = time.Now()
-	u.UpdatedAt = time.Now()
+func (user *User) Prepare() {
+	user.UserId = 0
+	user.Username = html.EscapeString(strings.TrimSpace(user.Username))
+	user.FullName = html.EscapeString(strings.TrimSpace(user.FullName))
+	user.Email = html.EscapeString(strings.TrimSpace(user.Email))
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 }
 
-func (u *User) SaveUser() (*User, error) {
+func (user *User) SaveUser() (*User, error) {
 	var err error
 
 	database := db.GetDB()
-	err = database.Debug().Create(&u).Error
+	err = database.Debug().Create(&user).Error
 
 	if err != nil {
 		return &User{}, err
 	}
 
-	return u, nil
+	return user, nil
 }
 
-func (u *User) FindAllUsers() (*[]User, error) {
+func (user *User) FindAllUsers() (*[]User, error) {
 	var err error
 	var users []User
 	database := db.GetDB()
@@ -72,21 +73,21 @@ func (u *User) FindAllUsers() (*[]User, error) {
 	return &users, err
 }
 
-func (u *User) FindUserById(uid string) (User, error) {
+func (user *User) FindUserById(userId uint32) (User, error) {
 	var err error
+	var userResult User
 	database := db.GetDB()
 
-	var result User
-	err = database.Debug().Model(User{}).Where("id = ?", uid).Take(&result).Error
+	err = database.Debug().Model(&User{}).Where("user_id = ?", userId).Limit(1).Find(&userResult).Error
 
 	if err != nil {
-		return User{}, errors.New("user not found")
+		return User{}, err
 	}
 
-	return result, err
+	return userResult, err
 }
 
-func (u *User) FindUserByUsername(username string) (User, error) {
+func (user *User) FindUserByUsername(username string) (User, error) {
 	var err error
 	var result User
 
@@ -101,43 +102,32 @@ func (u *User) FindUserByUsername(username string) (User, error) {
 	return result, err
 }
 
-func (u *User) UpdateAUser(uid uint32) (User, error) {
+func (user *User) UpdateUser() (*User, error) {
 	database := db.GetDB()
 
-	// To hash the password
-	err := u.BeforeSave()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	databaseResult := database.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumns(
+	databaseResult := database.Debug().Model(&User{}).Where("user_id = ?", user.UserId).Take(&User{}).UpdateColumns(
 		map[string]interface{}{
-			"password":  u.Password,
-			"Username":  u.Username,
-			"email":     u.Email,
-			"update_at": time.Now(),
+			"username":   user.Username,
+			"email":      user.Email,
+			"full_name":  user.FullName,
+			"updated_at": time.Now(),
 		},
 	)
 
 	if databaseResult.Error != nil {
-		return User{}, databaseResult.Error
+		return &User{}, databaseResult.Error
 	}
 
-	var result User
-	err = databaseResult.Debug().Model(&User{}).Where("id = ?", uid).Take(&result).Error
-
-	if err != nil {
-		return User{}, err
-	}
-	return result, nil
+	return user, nil
 }
 
-func (u *User) DeleteAUser(uid uint32) (int64, error) {
+func (user *User) DeleteUserById(id uint32) error {
 	database := db.GetDB()
-	databaseResult := database.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).Delete(&User{})
+	databaseResult := database.Debug().Model(&User{}).Where("user_id = ?", id).Take(&User{}).Delete(&User{})
 
 	if databaseResult.Error != nil {
-		return 0, databaseResult.Error
+		return databaseResult.Error
 	}
-	return databaseResult.RowsAffected, nil
+
+	return nil
 }

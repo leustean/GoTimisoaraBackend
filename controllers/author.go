@@ -11,8 +11,8 @@ import (
 type AuthorController struct{}
 
 func (author AuthorController) Put(c *gin.Context) {
-	var authorsData models.Author
-	var resultData *models.Author
+	var authorsData models.User
+	var resultData *models.User
 
 	err := c.Bind(&authorsData)
 
@@ -24,7 +24,7 @@ func (author AuthorController) Put(c *gin.Context) {
 	}
 
 	authorsData.Prepare()
-	resultData, err = authorsData.SaveAuthor()
+	resultData, err = authorsData.SaveUser()
 
 	if err != nil {
 		log.Println(err.Error())
@@ -39,8 +39,8 @@ func (author AuthorController) Put(c *gin.Context) {
 }
 
 func (author AuthorController) Post(c *gin.Context) {
-	var authorsData models.Author
-	var resultData *models.Author
+	var authorsData models.User
+	var resultData *models.User
 
 	err := c.Bind(&authorsData)
 
@@ -52,7 +52,7 @@ func (author AuthorController) Post(c *gin.Context) {
 	}
 
 	authorsData.Prepare()
-	resultData, err = authorsData.UpdateAuthor()
+	resultData, err = authorsData.UpdateUser()
 
 	if err != nil {
 		log.Println(err.Error())
@@ -67,7 +67,7 @@ func (author AuthorController) Post(c *gin.Context) {
 }
 
 func (author AuthorController) Delete(c *gin.Context) {
-	var authorsData models.Author
+	var authorsData models.User
 
 	if c.Param("id") == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
@@ -77,7 +77,7 @@ func (author AuthorController) Delete(c *gin.Context) {
 
 	authorId, err := strconv.Atoi(c.Param("id"))
 
-	err = authorsData.DeleteAuthorById(uint32(authorId))
+	err = authorsData.DeleteUserById(uint32(authorId))
 
 	if err != nil {
 		log.Println(err.Error())
@@ -92,9 +92,9 @@ func (author AuthorController) Delete(c *gin.Context) {
 }
 
 func (author AuthorController) GetAll(c *gin.Context) {
-	var authorModel models.Author
+	var authorModel models.User
 
-	authorsData, err := authorModel.FindAllAuthors()
+	authorsData, err := authorModel.FindAllUsers()
 
 	if err != nil {
 		log.Println(err.Error())

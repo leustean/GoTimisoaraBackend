@@ -12,7 +12,7 @@ import (
 type Article struct {
 	ArticleID     uint32    `gorm:"primary_key;auto_increment" json:"articleId"`
 	Title         string    `gorm:"size:255;not null;unique" json:"title"`
-	Author        Author    `json:"author"`
+	Author        User      `json:"author"`
 	AuthorID      uint32    `gorm:"not null" json:"authorId"`
 	Content       string    `gorm:"type:longtext; not null" json:"contents"`
 	IsVisible     uint      `json:"isVisible,omitempty"`
@@ -27,11 +27,11 @@ type Article struct {
 func (article *Article) Prepare() {
 	article.Title = html.EscapeString(strings.TrimSpace(article.Title))
 	article.Content = html.EscapeString(strings.TrimSpace(article.Content))
-	article.Author = Author{}
+	article.Author = User{}
 	article.Tag = Tag{}
 
 	if article.ArticleID > 0 {
-		authorData, err := article.Author.FindAuthorById(article.AuthorID)
+		authorData, err := article.Author.FindUserById(article.AuthorID)
 
 		if err == nil {
 			article.Author = authorData

@@ -6,6 +6,7 @@ import (
 	"goTimisoaraBackend/models"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type UserController struct{}
@@ -14,7 +15,9 @@ var userModel = new(models.User)
 
 func (u UserController) Retrieve(c *gin.Context) {
 	if c.Param("id") != "" {
-		user, err := userModel.FindUserById(c.Param("id"))
+		userId, err := strconv.Atoi(c.Param("id"))
+
+		user, err := userModel.FindUserById(uint32(userId))
 		if err != nil {
 			log.Println(err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error to retrieve user"})
