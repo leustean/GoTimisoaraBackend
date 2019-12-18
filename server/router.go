@@ -51,6 +51,7 @@ func NewRouter() *gin.Engine {
 			articleGroup.PUT("/", article.Put)
 			articleGroup.POST("/", article.Post)
 			articleGroup.DELETE("/:id", article.Delete)
+			articleGroup.GET("/getOne/:id", article.Get)
 			articleGroup.GET("/", article.GetAll)
 
 			pageNumberGroup := articleGroup.Group("pageNumber")

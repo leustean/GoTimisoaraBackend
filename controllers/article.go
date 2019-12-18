@@ -124,7 +124,38 @@ func (article ArticleController) GetAll(c *gin.Context) {
 		return
 	}
 
-	articleData, err = articleModel.FindArticlesByPageNumber(uint32(pageNumber), uint32(tagId), uint8(sortType))
+	var pageCount uint32 = 0
+	pageCount, articleData, err = articleModel.FindArticlesByPageNumber(uint32(pageNumber), uint32(tagId), uint8(sortType))
+
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "An error occurred"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"numberOfPages": pageCount, "pageNumber": pageNumber, "articles": articleData})
+
+	return
+}
+
+func (article ArticleController) Get(c *gin.Context) {
+	var articleModel models.Article
+	var articleData *models.Article
+
+	var err error
+	var articleId int
+
+	articleId, err = strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
+		c.Abort()
+		return
+	}
+
+	articleData, err = articleModel.FindArticleById(uint32(articleId))
 
 	if err != nil {
 		log.Println(err.Error())

@@ -16,10 +16,10 @@ type Article struct {
 	Author        User            `json:"author"`
 	AuthorID      uint32          `gorm:"not null" json:"authorId"`
 	Content       json.RawMessage `gorm:"type:JSON; not null" json:"contents"`
-	IsVisible     uint            `json:"isVisible,omitempty"`
+	IsVisible     uint            `json:"isVisible"`
 	Tag           Tag             `json:"tag"`
 	TagId         uint32          `json:"tagId"`
-	EditorsChoice bool            `json:"editorsChoice"`
+	EditorsChoice uint            `json:"editorsChoice"`
 	ViewCount     uint32          `json:"viewCount"`
 	UpdatedAt     time.Time       `gorm:"default:CURRENT_TIMESTAMP" json:"updatedAt,omitempty"`
 	CreatedAt     time.Time       `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt,omitempty"`
@@ -75,15 +75,14 @@ func (article *Article) SaveArticle() (*Article, error) {
 func (article *Article) UpdateArticle() (*Article, error) {
 	database := db.GetDB()
 
-	databaseResult := database.Debug().Model(&Article{}).Where("id = ?", article.ArticleID).Take(&Article{}).UpdateColumns(
+	databaseResult := database.Debug().Model(&Article{}).Where("article_id = ?", article.ArticleID).Take(&Article{}).UpdateColumns(
 		map[string]interface{}{
 			"title":          article.Title,
-			"author_id":      article.AuthorID,
 			"tag_id":         article.TagId,
 			"updated_at":     article.UpdatedAt,
-			"view_count":     article.ViewCount,
+			"is_visible":     article.IsVisible,
 			"editors_choice": article.EditorsChoice,
-			"contents":       article.Content,
+			"content":        article.Content,
 		},
 	)
 
@@ -96,7 +95,7 @@ func (article *Article) UpdateArticle() (*Article, error) {
 
 func (article *Article) DeleteArticleById(articleId uint32) (int64, error) {
 	database := db.GetDB()
-	databaseResult := database.Debug().Model(&Article{}).Where("id = ?", articleId).Take(&Article{}).Delete(&Article{})
+	databaseResult := database.Debug().Model(&Article{}).Where("article_id = ?", articleId).Take(&Article{}).Delete(&Article{})
 
 	if databaseResult.Error != nil {
 		if gorm.IsRecordNotFoundError(databaseResult.Error) {
@@ -123,13 +122,14 @@ func (article *Article) FindAllArticles() (*[]Article, error) {
 	return &articles, err
 }
 
-func (article *Article) FindArticlesByPageNumber(pageNumber uint32, tagId uint32, sortType uint8) (*[]Article, error) {
+func (article *Article) FindArticlesByPageNumber(pageNumber uint32, tagId uint32, sortType uint8) (uint32, *[]Article, error) {
 	var err error
 	var articles []Article
 	var numberOfResultsOnPage uint32 = 10
 	var computedPage uint32 = 1
+	var pageCount uint32 = 0
 
-	if pageNumber > 1 {
+	if pageNumber >= 1 {
 		computedPage = (pageNumber - 1) * numberOfResultsOnPage
 	}
 
@@ -137,43 +137,69 @@ func (article *Article) FindArticlesByPageNumber(pageNumber uint32, tagId uint32
 
 	if tagId != 0 && sortType == 0 {
 		err = database.Debug().Model(&Article{}).Offset(computedPage).Limit(numberOfResultsOnPage).Where("tag_id = ?", tagId).Find(&articles).Error
+		err = database.Debug().Model(&Article{}).Where("tag_id = ?", tagId).Count(&pageCount).Error
 	} else if tagId != 0 && sortType != 0 {
 		if sortType == 1 {
 			err = database.Debug().Model(&Article{}).Where("tag_id = ?", tagId).Order("view_count desc").Order("updated_at desc").Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+			err = database.Debug().Model(&Article{}).Where("tag_id = ?", tagId).Count(&pageCount).Error
 		} else if sortType == 2 {
 			err = database.Debug().Model(&Article{}).Where("editors_choice = 1 AND tag_id = ?", tagId).Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+			err = database.Debug().Model(&Article{}).Where("editors_choice = 1 AND tag_id = ?", tagId).Count(&pageCount).Error
 		} else {
 			err = database.Debug().Model(&Article{}).Where("tag_id = ?", tagId).Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+			err = database.Debug().Model(&Article{}).Where("tag_id = ?", tagId).Count(&pageCount).Error
 		}
 	} else if tagId == 0 && sortType != 0 {
 		if sortType == 1 {
 			err = database.Debug().Model(&Article{}).Order("view_count desc").Order("updated_at desc").Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+			err = database.Debug().Model(&Article{}).Count(&pageCount).Error
 		} else if sortType == 2 {
 			err = database.Debug().Model(&Article{}).Where("editors_choice = 1").Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+			err = database.Debug().Model(&Article{}).Where("editors_choice = 1").Count(&pageCount).Error
 		} else {
 			err = database.Debug().Model(&Article{}).Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+			err = database.Debug().Model(&Article{}).Count(&pageCount).Error
 		}
 	} else {
 		err = database.Debug().Model(&Article{}).Offset(computedPage).Limit(numberOfResultsOnPage).Find(&articles).Error
+		err = database.Debug().Model(&Article{}).Count(&pageCount).Error
 	}
 
 	if err != nil {
-		return &[]Article{}, err
+		return 0, &[]Article{}, err
 	}
 
-	return &articles, err
+	if pageCount == 0 {
+		pageCount += 1
+	}
+	pageCount = ((pageCount - 1) / numberOfResultsOnPage) + 1
+	return pageCount, &articles, err
 }
 
-func (article *Article) FindArticleById(articleId uint32) (Article, error) {
+func (article *Article) FindArticleById(articleId uint32) (*Article, error) {
 	var err error
 	var articleResult Article
 	database := db.GetDB()
 
-	err = database.Debug().Model(&Article{}).Where("id = ?", articleId).Limit(1).Find(&articleResult).Error
+	err = database.Debug().Model(&Article{}).Where("article_id = ?", articleId).Limit(1).Find(&articleResult).Error
 
 	if err != nil {
-		return Article{}, err
+		return &Article{}, err
 	}
 
-	return articleResult, err
+	err = database.Debug().Model(&User{}).Where("user_id = ?", articleResult.AuthorID).Limit(1).Find(&articleResult.Author).Error
+
+	if err != nil {
+		return &Article{}, err
+	}
+
+	_ = database.Debug().Model(&Tag{}).Where("tag_id = ?", articleResult.TagId).Limit(1).Find(&articleResult.Tag).Error
+
+	_ = database.Debug().Model(&Article{}).Where("article_id = ?", articleId).Take(&Article{}).UpdateColumns(
+		map[string]interface{}{
+			"view_count": articleResult.ViewCount + 1,
+		},
+	)
+
+	return &articleResult, err
 }
